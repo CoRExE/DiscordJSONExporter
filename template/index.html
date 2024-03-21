@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Report</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body style="text-align: left;">
+  <div class="container">
+    <h1>JSON Report</h1>
+    <div class="form-group">
+      <label for="author-select">Author:</label>
+      <select id="author-select" class="form-control">
+        <option value="">All authors</option>
+        {% for author in report_authors %}
+          <option value="{{ author }}">{{ author }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="search-input">Search:</label>
+      <input type="text" id="search-input" class="form-control">
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Author</th>
+          <th>Content</th>
+          <th>Embeds</th>
+          <th>Attachments</th>
+          <th>Timestamp</th>
+          <th>Edited Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for filename, json_data in report_data.items() %}
+          {% for message in json_data %}
+            <tr>
+              <td>{{ message.author.username }}</td>
+              <td>{{ message.content }}</td>
+              <td>
+                {% for embed in message.embeds %}
+                  <div>
+                    <strong>{{ embed.title }}</strong>
+                    <p>{{ embed.description }}</p>
+                  </div>
+                {% endfor %}
+              </td>
+              <td>
+                {% for attachment in message.attachments %}
+                  <div>
+                    <a href="{{ attachment.url }}" target="_blank">{{ attachment.filename }}</a>
+                  </div>
+                {% endfor %}
+              </td>
+              <td>{{ message.timestamp | format_datetime }}</td>
+              <td>{% if message.edited_timestamp %}{{ message.edited_timestamp | format_datetime }}{% endif %}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <script>
+    $(document).ready(function() {
+      $('#author-select').change(function() {
+        var author = $(this).val();
+        if (author) {
+          $('table tbody tr').hide();
+          $('table tbody tr td:first-child:contains("' + author + '")').parent().show();
+        } else {
+          $('table tbody tr').show();
+        }
+      });
+      $('#search-input').keyup(function() {
+        var search = $(this).val().toLowerCase();
+        $('table tbody tr').hide();
+        $('table tbody tr td').filter(function() {
+          return $(this).text().toLowerCase().indexOf(search) > -1;
+        }).parent().show();
+      });
+    });
+  </script>
+</body>
+</html>
